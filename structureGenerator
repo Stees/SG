@@ -112,7 +112,7 @@ totalDif = 1.5*(maxDiff1 + maxDiff2)
 molFile = open(fullLocName+'mol.inp','w')
 molFile.write('{0}\n'.format(tempNameDir))
 molFile.write('{0}.cluster\n'.format(tempNameDir))
-molFile.write('cube 1.0 {0} {0} {0}\n'.format(totalDif))
+molFile.write('cube 1.0 {0} {0} {0}\n'.format(int(totalDif)))
 bControl = 0
 while (bControl == 0):
     numPrelim = raw_input('\n\nHow many structures need to be screened? (integer)\n')
