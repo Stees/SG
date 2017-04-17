@@ -12,7 +12,7 @@ import time
 control = 0
 while (control != 1):
     print('Choose two structures for configuration generation by typing the corresponding numbers\nseparated by a space. Type the number of the analyte molecule first.\n')
-    time.sleep(0.006)
+    time.sleep(0.008)
     ssloc = '/ihome/kjohnson/jpr54/orca/geometryOptimizations/singleMolecules/'
     singleStructures = subprocess.Popen('ls {0}'.format(ssloc), stdout=subprocess.PIPE, shell=True)
     singleStructureLines = singleStructures.communicate()[0].split()
@@ -21,13 +21,13 @@ while (control != 1):
         print('{0}: {1}'.format(i, line))
     time.sleep(0.006)
     structureNumbers = raw_input('\nFor example: 0 1 for {0} and {1}\n'.format(singleStructureLines[0], singleStructureLines[1]))
-    structureNumberList = np.unique(np.array([int(s) for s in structureNumbers.split() if s.isdigit()]))
+    structureNumberList = np.array([int(s) for s in structureNumbers.split() if s.isdigit()])
     #determine if entry is valid
     if (structureNumberList.size == 2):
         control = 1
     else:
         print('Invalid entry. Try again.\n')
-        time.sleep(0.006)
+        time.sleep(0.008)
         subprocess.Popen('clear')
         control = 2
 
@@ -40,7 +40,7 @@ dirs = subprocess.Popen('ls /ihome/kjohnson/jpr54/abcluster/', stdout=subprocess
 dirList = dirs.communicate()[0]
 if (tempNameDir not in dirList):
     subprocess.Popen('mkdir {0}'.format(tempNameDir), cwd='/ihome/kjohnson/jpr54/abcluster/', shell=True)
-    time.sleep(0.006)
+    time.sleep(0.010)
     subprocess.Popen('mkdir 1', cwd='/ihome/kjohnson/jpr54/abcluster/'+tempNameDir+'/', shell=True)
     tempNameDirNum = tempNameDir+'/1/'
 else:
@@ -53,7 +53,7 @@ else:
 fullLocName = '/ihome/kjohnson/jpr54/abcluster/'+tempNameDirNum
 
 #make the cluster file
-time.sleep(0.008)
+time.sleep(0.010)
 clusterFile = open(fullLocName+'{0}.cluster'.format(tempNameDir), 'w')
 clusterFile.write('2\n')
 clusterFile.write('{0}{1}/geometryOptimizationOrca.xyz\t1\n'.format(ssloc,singleStructureLines[structureNumberList[0]]))
@@ -116,7 +116,7 @@ molFile.write('cube 1.0 {0} {0} {0}\n'.format(int(totalDif)))
 bControl = 0
 while (bControl == 0):
     numPrelim = raw_input('\n\nHow many structures need to be screened? (integer)\n')
-    prelims = np.unique(np.array([int(s) for s in numPrelim.split() if s.isdigit()]))
+    prelims = np.array([int(s) for s in numPrelim.split() if s.isdigit()])
     #determine if entry is valid
     if (prelims.size == 1):
         bControl = 1
@@ -158,7 +158,7 @@ while (cControl == 0):
         cControl = 1
     else:
         print('Invalid entry. Try again.\n')
-        time.sleep(0.006)
+        time.sleep(0.008)
         
 #after the calculation finishes, get the numbers of the X best structures
 jobFile.write('    result=$(grep -A {0} "Reordered from low to high" mol.out | tail -n {1} | cut -d " " -f 5)\n'.format(int(kept)+3,int(kept)))
