@@ -106,7 +106,7 @@ for line in lines:
     if float(line.split()[3]) < min3b:
         min3b = float(line.split()[3])
 maxDiff2 = max(max1b,max2b,max3b) - min(min1b,min2b,min3b)
-totalDif = 1.5*(maxDiff1 + maxDiff2)
+totalDif = 1.25*(maxDiff1 + maxDiff2)
 
 #write mol.inp file
 molFile = open(fullLocName+'mol.inp','w')
