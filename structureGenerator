@@ -161,7 +161,7 @@ while (cControl == 0):
         time.sleep(0.008)
         
 #after the calculation finishes, get the numbers of the X best structures
-jobFile.write('    result=$(grep -A {0} "Reordered from low to high" mol.out | tail -n {1} | cut -d " " -f 5)\n'.format(int(kept)+3,int(kept)))
+jobFile.write('    result=$(grep -A {0} "Reordered from low to high" mol.out | tail -n {1} | sed "s/^ *//g" |cut -d " " -f 5)\n'.format(int(kept)+3,int(kept)))
 jobFile.write('    for i in $result; do mv ./{0}-LM/$i.xyz /ihome/kjohnson/jpr54/orca/geometryOptimizations/structureInputs/{0}_$i.xyz; done\n'.format(tempNameDir))
 #jobFile.write('orcaOptimizationJobs >> /ihome/kjohnson/jpr54/orca/submittedJobs.txt\n')
 
