@@ -151,7 +151,6 @@ if 'login0.crc.pitt.edu' in host:
     jobFile.write('module load orca/4.0.2\n\n')
     jobFile.write('date >> {0}.out\n'.format(tempNameDir))
     jobFile.write('srun -n $SLURM_NNODES cp $SLURM_SUBMIT_DIR/* $LOCAL\n\n')
-    jobFile.write('ulimit -s unlimited\n\n')
     jobFile.write('run_on_exit(){\n')
     jobFile.write('    cp -R $LOCAL/* $SLURM_SUBMIT_DIR/\n')
     jobFile.write('    cd $SLURM_SUBMIT_DIR/\n')
