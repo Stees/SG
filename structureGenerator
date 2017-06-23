@@ -141,7 +141,7 @@ if 'login0.crc.pitt.edu' in host:
     jobFile.write('#SBATCH --job-name="{0}"\n'.format(tempNameDir))
     jobFile.write('#SBATCH --output="{0}"\n'.format(tempNameDir))
     jobFile.write('#SBATCH --nodes=1\n')
-    jobFile.write('#SBATCH --tasks-per-node=7\n')
+    jobFile.write('#SBATCH --ntasks-per-node=7\n')
     jobFile.write('#SBATCH --cluster=smp\n')
     jobFile.write('#SBATCH --partition=smp\n')
     jobFile.write('#SBATCH --time=0-24:00:00\n')
