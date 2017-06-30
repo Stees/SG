@@ -18,7 +18,7 @@ if 'login0.crc.pitt.edu' in host:
     while (control != 1):
         print('Choose two structures for configuration generation by typing the corresponding numbers\nseparated by a space. Type the number of the analyte molecule first.\n')
         time.sleep(0.008)
-        ssloc = '/ihome/kjohnson/jpr54/orca/geometryOptimizations/singleMolecules/'
+        ssloc = '/zfs1/2/kjohnson/jpr54/orca/geometryOptimizations/singleMolecules/'
         singleStructures = subprocess.Popen('ls {0}'.format(ssloc), stdout=subprocess.PIPE, shell=True)
         singleStructureLines = singleStructures.communicate()[0].split()
         print('The following structures are available:\n')
@@ -38,7 +38,6 @@ if 'login0.crc.pitt.edu' in host:
 
     #create name of the configuration
     tempNameDir = singleStructureLines[structureNumberList[0]] + '_' + singleStructureLines[structureNumberList[1]]
-    #print('{0}'.format(tempNameDir))
 
     #Check to see if there is already a directory with this configuration in the abcluster directory before making a new one. Append a number if there is.
     dirs = subprocess.Popen('ls /ihome/kjohnson/jpr54/abcluster/', stdout=subprocess.PIPE, shell=True)
@@ -66,7 +65,7 @@ if 'login0.crc.pitt.edu' in host:
     clusterFile.close()
 
     #determine the maximal dimension
-    min1a, min2a, min3a, max1a, max2a, max3a = 100.0,100.0,100.0,0,0,0
+    min1a, min2a, min3a, max1a, max2a, max3a = 150.0,150.0,150.0,0,0,0
     maxDiff1 = 0.0
     structure1 = open('{0}{1}/geometryOptimizationOrca.xyz'.format(ssloc,singleStructureLines[structureNumberList[0]]), 'r')
     #read the first two lines and trash them
