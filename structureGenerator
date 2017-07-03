@@ -157,7 +157,7 @@ if 'login0.crc.pitt.edu' in host:
 
     #after the calculation finishes, get the numbers of the X best structures
     jobFile.write('    result=$(grep -A {0} "Reordered from low to high" mol.out | tail -n {1} | sed "s/^ *//g" |cut -d " " -f 1)\n'.format(int(prelims)+3,int(prelims)))
-    jobFile.write('    for i in $result; do mv ./{0}-LM/$i.xyz /ihome/kjohnson/jpr54/orca/geometryOptimizations/structureInputs/{0}_$i.xyz; done\n'.format(tempNameDir))
+    jobFile.write('    for i in $result; do cp ./{0}-LM/$i.xyz /ihome/kjohnson/jpr54/orca/geometryOptimizations/structureInputs/{0}_$i.xyz; done\n'.format(tempNameDir))
     #jobFile.write('orcaOptimizationJobs >> /ihome/kjohnson/jpr54/orca/submittedJobs.txt\n')
 
     jobFile.write('}\n\n')
