@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-#code will generate random configurations of two ORCA optimized molecules, calculate single point energies of them, dump the lowest energy structures in the structure input directory for orca geometry optimizations, and cause binding energy tracker to run when the structures have all been dumped.
+#code will generate random configurations of two ORCA optimized molecules, calculate single point energies of them, dump the structures in the structure input directory for orca geometry optimizations
 
 import subprocess
 import readline
@@ -17,14 +17,14 @@ if 'login0.crc.pitt.edu' in host:
     control = 0
     while (control != 1):
         print('Choose two structures for configuration generation by typing the corresponding numbers\nseparated by a space. Type the number of the analyte molecule first.\n')
-        time.sleep(0.008)
-        ssloc = '/zfs1/2/kjohnson/jpr54/orca/geometryOptimizations/singleMolecules/'
+        time.sleep(0.05)
+        ssloc = '/ihome/kjohnson/jpr54/orca/geometryOptimizations/singleMolecules/'
         singleStructures = subprocess.Popen('ls {0}'.format(ssloc), stdout=subprocess.PIPE, shell=True)
         singleStructureLines = singleStructures.communicate()[0].split()
         print('The following structures are available:\n')
         for i, line in enumerate(singleStructureLines):
             print('{0}: {1}'.format(i, line))
-        time.sleep(0.006)
+        time.sleep(0.05)
         structureNumbers = raw_input('\nFor example: 0 1 for {0} and {1}\n'.format(singleStructureLines[0], singleStructureLines[1]))
         structureNumberList = np.array([int(s) for s in structureNumbers.split() if s.isdigit()])
         #determine if entry is valid
@@ -44,7 +44,7 @@ if 'login0.crc.pitt.edu' in host:
     dirList = dirs.communicate()[0]
     if (tempNameDir not in dirList):
         subprocess.Popen('mkdir {0}'.format(tempNameDir), cwd='/ihome/kjohnson/jpr54/abcluster/', shell=True)
-        time.sleep(0.010)
+        time.sleep(0.025)
         subprocess.Popen('mkdir 1', cwd='/ihome/kjohnson/jpr54/abcluster/'+tempNameDir+'/', shell=True)
         tempNameDirNum = tempNameDir+'/1/'
     else:
@@ -57,7 +57,7 @@ if 'login0.crc.pitt.edu' in host:
     fullLocName = '/ihome/kjohnson/jpr54/abcluster/'+tempNameDirNum
 
     #make the cluster file
-    time.sleep(0.010)
+    time.sleep(0.025)
     clusterFile = open(fullLocName+'{0}.cluster'.format(tempNameDir), 'w')
     clusterFile.write('2\n')
     clusterFile.write('{0}{1}/geometryOptimizationOrca.xyz\t1\n'.format(ssloc,singleStructureLines[structureNumberList[0]]))
