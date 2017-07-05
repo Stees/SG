@@ -16,6 +16,9 @@ if 'login0.crc.pitt.edu' in host:
     #allow user selection of two structures for which to generate configurations
     control = 0
     while (control != 1):
+        #determine what is in the queue
+        currentJobs = subprocess.Popen("squeue -u $USER -o '%7i%24j%8u' | grep 'jpr54' | awk '{print $1;}'", stdout=subprocess.PIPE, shell=True)
+        activeJobs = currentJobs.communicate()[0].split()
         print('Choose two structures for configuration generation by typing the corresponding numbers\nseparated by a space. Type the number of the analyte molecule first.\n')
         time.sleep(0.05)
         ssloc = '/ihome/kjohnson/jpr54/orca/geometryOptimizations/singleMolecules/'
@@ -23,7 +26,15 @@ if 'login0.crc.pitt.edu' in host:
         singleStructureLines = singleStructures.communicate()[0].split()
         print('The following structures are available:\n')
         for i, line in enumerate(singleStructureLines):
-            print('{0}: {1}'.format(i, line))
+            #check the job number
+            getNumber = subprocess.Popen('cat JobId', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ssloc+line, shell=True)
+            tempNumber = getNumber.communicate()[0]
+            if 'cat:' in tempNumber:
+                #legacy calculation, print the value
+                print('{0}: {1}'.format(i, line))
+            elif tempNumber not in activeJobs:
+                #job is done running, print the value
+                print('{0}: {1}'.format(i, line))
         time.sleep(0.05)
         structureNumbers = raw_input('\nFor example: 0 1 for {0} and {1}\n'.format(singleStructureLines[0], singleStructureLines[1]))
         structureNumberList = np.array([int(s) for s in structureNumbers.split() if s.isdigit()])
@@ -35,27 +46,23 @@ if 'login0.crc.pitt.edu' in host:
             time.sleep(0.008)
             subprocess.Popen('clear')
             control = 2
-
     #create name of the configuration
     tempNameDir = singleStructureLines[structureNumberList[0]] + '_' + singleStructureLines[structureNumberList[1]]
-
     #Check to see if there is already a directory with this configuration in the abcluster directory before making a new one. Append a number if there is.
     dirs = subprocess.Popen('ls /ihome/kjohnson/jpr54/abcluster/', stdout=subprocess.PIPE, shell=True)
     dirList = dirs.communicate()[0]
     if (tempNameDir not in dirList):
-        subprocess.Popen('mkdir {0}'.format(tempNameDir), cwd='/ihome/kjohnson/jpr54/abcluster/', shell=True)
-        time.sleep(0.025)
+        subprocess.Popen('mkdir {0}'.format(tempNameDir.replace("'","\\'")), cwd='/ihome/kjohnson/jpr54/abcluster/', shell=True)
+        time.sleep(1)
         subprocess.Popen('mkdir 1', cwd='/ihome/kjohnson/jpr54/abcluster/'+tempNameDir+'/', shell=True)
         tempNameDirNum = tempNameDir+'/1/'
     else:
-        nums = subprocess.Popen('ls /ihome/kjohnson/jpr54/abcluster/'+tempNameDir+'/', stdout=subprocess.PIPE, shell=True)
+        nums = subprocess.Popen('ls /ihome/kjohnson/jpr54/abcluster/'+tempNameDir.replace("'","\\'")+'/', stdout=subprocess.PIPE, shell=True)
         numbers = nums.communicate()[0].split()
         maxNum = len(numbers)
         subprocess.Popen('mkdir {0}'.format(maxNum+1), cwd='/ihome/kjohnson/jpr54/abcluster/'+tempNameDir+'/', shell=True)
         tempNameDirNum = tempNameDir+'/'+str(maxNum+1)+'/'
-
     fullLocName = '/ihome/kjohnson/jpr54/abcluster/'+tempNameDirNum
-
     #make the cluster file
     time.sleep(0.025)
     clusterFile = open(fullLocName+'{0}.cluster'.format(tempNameDir), 'w')
@@ -63,7 +70,6 @@ if 'login0.crc.pitt.edu' in host:
     clusterFile.write('{0}{1}/geometryOptimizationOrca.xyz\t1\n'.format(ssloc,singleStructureLines[structureNumberList[0]]))
     clusterFile.write('{0}{1}/geometryOptimizationOrca.xyz\t1\n'.format(ssloc,singleStructureLines[structureNumberList[1]]))
     clusterFile.close()
-
     #determine the maximal dimension
     min1a, min2a, min3a, max1a, max2a, max3a = 150.0,150.0,150.0,0,0,0
     maxDiff1 = 0.0
@@ -111,7 +117,6 @@ if 'login0.crc.pitt.edu' in host:
             min3b = float(line.split()[3])
     maxDiff2 = max(max1b,max2b,max3b) - min(min1b,min2b,min3b)
     totalDif = 1.25*(maxDiff1 + maxDiff2)
-
     #write mol.inp file
     molFile = open(fullLocName+'mol.inp','w')
     molFile.write('{0}\n'.format(tempNameDir))
@@ -127,51 +132,44 @@ if 'login0.crc.pitt.edu' in host:
         else:
             print('Invalid entry. Try again.\n')
             time.sleep(0.006)
-
     molFile.write('{0}\n'.format(int(prelims)))
     molFile.write('>>>>\n')
     molFile.write('oa $xxx$ $inp$ $out$\n')
     molFile.write('>>>>\n')
     molFile.close()
-
     #write the job submission file
     jobFile = open(fullLocName+'job.slurm','w')
     jobFile.write('#!/bin/env bash\n\n')
     jobFile.write('#SBATCH --job-name="{0}"\n'.format(tempNameDir))
-    jobFile.write('#SBATCH --output="{0}"\n'.format(tempNameDir))
+    jobFile.write('#SBATCH --output="{0}.out"\n'.format(tempNameDir))
     jobFile.write('#SBATCH --nodes=1\n')
     jobFile.write('#SBATCH --cluster=smp\n')
     jobFile.write('#SBATCH --partition=smp\n')
     jobFile.write('#SBATCH --ntasks-per-node=6\n')
-    #jobFile.write('#SBATCH --mem=4g\n')
     jobFile.write('#SBATCH --time=0-24:00:00\n')
     jobFile.write('#SBATCH --qos=short\n\n')
     jobFile.write('module purge\n')
     jobFile.write('module load openmpi/2.0.2\n')
     jobFile.write('module load orca/4.0.2\n\n')
-    jobFile.write('date >> {0}.out\n'.format(tempNameDir))
-    jobFile.write('srun -n $SLURM_NNODES cp $SLURM_SUBMIT_DIR/* $LOCAL\n\n')
+    jobFile.write('date >> {0}.out\n'.format(tempNameDir.replace("'","\\'")))
+    jobFile.write('srun -n $SLURM_NNODES cp $SLURM_SUBMIT_DIR/* {0}\n\n'.format(fullLocName.replace("'","\\'")))
     jobFile.write('run_on_exit(){\n')
-    jobFile.write('    cp -R $LOCAL/* $SLURM_SUBMIT_DIR/\n')
+    jobFile.write('    cp -R {0}/* $SLURM_SUBMIT_DIR/\n'.format(fullLocName.replace("'","\\'")))
     jobFile.write('    cd $SLURM_SUBMIT_DIR/\n')
-
     #after the calculation finishes, get the numbers of the X best structures
     jobFile.write('    result=$(grep -A {0} "Reordered from low to high" mol.out | tail -n {1} | sed "s/^ *//g" |cut -d " " -f 1)\n'.format(int(prelims)+3,int(prelims)))
-    jobFile.write('    for i in $result; do cp ./{0}-LM/$i.xyz /ihome/kjohnson/jpr54/orca/geometryOptimizations/structureInputs/{0}_$i.xyz; done\n'.format(tempNameDir))
+    jobFile.write('    for i in $result; do cp ./{0}-LM/$i.xyz /ihome/kjohnson/jpr54/orca/geometryOptimizations/structureInputs/{0}_$i.xyz; done\n'.format(tempNameDir.replace("'","\\'")))
     #jobFile.write('orcaOptimizationJobs >> /ihome/kjohnson/jpr54/orca/submittedJobs.txt\n')
-
     jobFile.write('}\n\n')
     jobFile.write('trap run_on_exit EXIT\n')
-    jobFile.write('cd $LOCAL\n')
+    jobFile.write('cd {0}\n'.format(fullLocName.replace("'","\\'")))
     jobFile.write('export OMP_NUM_THREADS=6\n')
     jobFile.write('/ihome/kjohnson/jpr54/ABCluster-Linux/lego mol.inp > mol.out\n\n')
     jobFile.write('\nexit 0\n')
     jobFile.close()
-
     #submit the calculation and print the calculation number to the terminal
     job = subprocess.Popen('sbatch job.slurm', stdout=subprocess.PIPE, cwd=fullLocName, shell=True)
     jobNumber = job.communicate()[0].split()[3]
     print('{0} {1} {2} structures\n'.format(jobNumber, tempNameDir, int(prelims)))
-
 else:
     print('\nYou are logged in to the wrong location. Log in to opa.\n')
